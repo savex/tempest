@@ -23,7 +23,7 @@ class CapabilitiesClient(rest_client.RestClient):
     def list_capabilities(self):
         self.skip_path()
         try:
-            resp, body = self.get('info')
+            resp, body = self.get('swift/info')
         finally:
             self.reset_path()
         body = json.loads(body)
