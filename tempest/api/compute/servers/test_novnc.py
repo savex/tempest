@@ -153,8 +153,11 @@ class NoVNCConsoleTestJSON(base.BaseV2ComputeTest):
                                                 b'Protocols\r\n'),
             'Did not get the expected 101 on the websockify call: '
             + six.text_type(self._websocket.response))
+        desired_header = "Sever: {0}".format(
+            CONF.compute_feature_enabled.nova_vnc_server_header
+        )
         self.assertTrue(
-            self._websocket.response.find(b'Server: WebSockify') > 0,
+            self._websocket.response.find(desired_header) > 0,
             'Did not get the expected WebSocket HTTP Response.')
 
     @decorators.idempotent_id('c640fdff-8ab4-45a4-a5d8-7e6146cbd0dc')
