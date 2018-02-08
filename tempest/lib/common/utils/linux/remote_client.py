@@ -10,6 +10,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import functools
 import sys
 
 import netaddr
@@ -25,13 +26,14 @@ LOG = logging.getLogger(__name__)
 
 def debug_ssh(function):
     """Decorator to generate extra debug info in case off SSH failure"""
+    @functools.wraps(function)
     def wrapper(self, *args, **kwargs):
         try:
             return function(self, *args, **kwargs)
         except Exception as e:
             caller = test_utils.find_test_caller() or "not found"
             if not isinstance(e, tempest.lib.exceptions.SSHTimeout):
-                message = ('Initializing SSH connection to %(ip)s failed. '
+                message = ('Executing command on %(ip)s failed. '
                            'Error: %(error)s' % {'ip': self.ip_address,
                                                  'error': e})
                 message = '(%s) %s' % (caller, message)

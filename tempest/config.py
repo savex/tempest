@@ -65,9 +65,7 @@ AuthGroup = [
                 deprecated_opts=[cfg.DeprecatedOpt('allow_tenant_isolation',
                                                    group='auth'),
                                  cfg.DeprecatedOpt('allow_tenant_isolation',
-                                                   group='compute'),
-                                 cfg.DeprecatedOpt('allow_tenant_isolation',
-                                                   group='orchestration')]),
+                                                   group='compute')]),
     cfg.ListOpt('tempest_roles',
                 help="Roles to assign to all users created by tempest",
                 default=[]),
@@ -473,6 +471,15 @@ ComputeFeaturesGroup = [
                 default=False,
                 help='Does the test environment support in-place swapping of '
                      'volumes attached to a server instance?'),
+    cfg.BoolOpt('volume_backed_live_migration',
+                default=False,
+                help='Does the test environment support volume-backed live '
+                     'migration?'),
+    cfg.BoolOpt('volume_multiattach',
+                default=False,
+                help='Does the test environment support attaching a volume to '
+                     'more than one instance? This depends on hypervisor and '
+                     'volume backend/type and compute API version 2.60.'),
 ]
 
 
@@ -537,13 +544,6 @@ ImageFeaturesGroup = [
                                   'are current one. In future, Tempest will '
                                   'test v2 APIs only so this config option '
                                   'will be removed.'),
-    cfg.BoolOpt('deactivate_image',
-                default=False,
-                help="Is the deactivate-image feature enabled."
-                     " The feature has been integrated since Kilo.",
-                deprecated_for_removal=True,
-                deprecated_reason="All supported versions of OpenStack now "
-                                  "support the 'deactivate_image' feature"),
 ]
 
 network_group = cfg.OptGroup(name='network',
@@ -912,66 +912,6 @@ ObjectStoreFeaturesGroup = [
                 help="Execute discoverability tests"),
 ]
 
-orchestration_group = cfg.OptGroup(name='orchestration',
-                                   title='Orchestration Service Options')
-
-OrchestrationGroup = [
-    cfg.StrOpt('catalog_type',
-               default='orchestration',
-               help="Catalog type of the Orchestration service.",
-               deprecated_for_removal=True,
-               deprecated_reason='Heat support will be removed from Tempest'),
-    cfg.StrOpt('region',
-               default='',
-               help="The orchestration region name to use. If empty, the "
-                    "value of identity.region is used instead. If no such "
-                    "region is found in the service catalog, the first found "
-                    "one is used.",
-               deprecated_for_removal=True,
-               deprecated_reason='Heat support will be removed from Tempest'),
-    cfg.StrOpt('endpoint_type',
-               default='publicURL',
-               choices=['public', 'admin', 'internal',
-                        'publicURL', 'adminURL', 'internalURL'],
-               help="The endpoint type to use for the orchestration service.",
-               deprecated_for_removal=True,
-               deprecated_reason='Heat support will be removed from Tempest'),
-    cfg.StrOpt('stack_owner_role', default='heat_stack_owner',
-               help='Role required for users to be able to manage stacks',
-               deprecated_for_removal=True,
-               deprecated_reason='Heat support will be removed from Tempest'),
-    cfg.IntOpt('build_interval',
-               default=1,
-               help="Time in seconds between build status checks.",
-               deprecated_for_removal=True,
-               deprecated_reason='Heat support will be removed from Tempest'),
-    cfg.IntOpt('build_timeout',
-               default=1200,
-               help="Timeout in seconds to wait for a stack to build.",
-               deprecated_for_removal=True,
-               deprecated_reason='Heat support will be removed from Tempest'),
-    cfg.StrOpt('instance_type',
-               default='m1.micro',
-               help="Instance type for tests. Needs to be big enough for a "
-                    "full OS plus the test workload",
-               deprecated_for_removal=True,
-               deprecated_reason='Heat support will be removed from Tempest'),
-    cfg.StrOpt('keypair_name',
-               help="Name of existing keypair to launch servers with.",
-               deprecated_for_removal=True,
-               deprecated_reason='Heat support will be removed from Tempest'),
-    cfg.IntOpt('max_template_size',
-               default=524288,
-               help="Value must match heat configuration of the same name.",
-               deprecated_for_removal=True,
-               deprecated_reason='Heat support will be removed from Tempest'),
-    cfg.IntOpt('max_resources_per_stack',
-               default=1000,
-               help="Value must match heat configuration of the same name.",
-               deprecated_for_removal=True,
-               deprecated_reason='Heat support will be removed from Tempest'),
-]
-
 
 scenario_group = cfg.OptGroup(name='scenario', title='Scenario Test Options')
 
@@ -1033,11 +973,6 @@ ServiceAvailableGroup = [
     cfg.BoolOpt('nova',
                 default=True,
                 help="Whether or not nova is expected to be available"),
-    cfg.BoolOpt('heat',
-                default=False,
-                help="Whether or not Heat is expected to be available",
-                deprecated_for_removal=True,
-                deprecated_reason='Heat support will be removed from Tempest'),
 ]
 
 debug_group = cfg.OptGroup(name="debug",
@@ -1067,17 +1002,6 @@ specify .* as the regex.
 ]
 
 DefaultGroup = [
-    cfg.StrOpt('resources_prefix',
-               default='tempest',
-               help="Prefix to be added when generating the name for "
-                    "test resources. It can be used to discover all "
-                    "resources associated with a specific test run when "
-                    "running tempest on a real-life cloud",
-               deprecated_for_removal=True,
-               deprecated_reason="It is enough to add 'tempest' as this "
-                                 "prefix to ideintify resources which are "
-                                 "created by Tempest and no projects set "
-                                 "this option on OpenStack dev community."),
     cfg.BoolOpt('pause_teardown',
                 default=False,
                 help="""Whether to pause a test in global teardown.
@@ -1105,7 +1029,6 @@ _opts = [
     (volume_feature_group, VolumeFeaturesGroup),
     (object_storage_group, ObjectStoreGroup),
     (object_storage_feature_group, ObjectStoreFeaturesGroup),
-    (orchestration_group, OrchestrationGroup),
     (scenario_group, ScenarioGroup),
     (service_available_group, ServiceAvailableGroup),
     (debug_group, DebugGroup),
@@ -1172,7 +1095,6 @@ class TempestConfigPrivate(object):
         self.object_storage = _CONF['object-storage']
         self.object_storage_feature_enabled = _CONF[
             'object-storage-feature-enabled']
-        self.orchestration = _CONF.orchestration
         self.scenario = _CONF.scenario
         self.service_available = _CONF.service_available
         self.debug = _CONF.debug
